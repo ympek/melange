@@ -1,5 +1,3 @@
---- Templates for various terminal configuration formats
-
 vim.cmd("packadd lush.nvim")
 local lush = require("lush")
 local uv = vim.loop
@@ -18,7 +16,7 @@ end
 
 -- Write a string to a file
 local function fwrite(str, file)
-    local fd = assert(uv.fs_open(file, 'w', 420), "Failed  to write to file " .. file) -- 0o644
+    local fd = assert(uv.fs_open(file, "w", 420), "Failed  to write to file " .. file) -- 0o644
     uv.fs_write(fd, str, -1)
     assert(uv.fs_close(fd))
 end
@@ -29,33 +27,37 @@ end
 
 -- Perl-like interpolation
 local function interpolate(str, tbl)
-    return str:gsub("%$([%w_]+)", function(k) return tostring(tbl[k]) end)
+    return str:gsub("%$([%w_]+)", function(k)
+        return tostring(tbl[k])
+    end)
 end
 
 -- Turn melange naming conventions into more common ANSI names
 local function get_palette16(variant)
-        local colors = get_colorscheme(variant).Melange.lush
-        return {
-            bg        = colors.a.bg,
-            fg        = colors.a.fg,
-            black     = colors.a.overbg,
-            red       = colors.c.red,
-            green     = colors.c.green,
-            yellow    = colors.b.yellow,
-            blue      = colors.b.blue,
-            magenta   = colors.c.magenta,
-            cyan      = colors.c.cyan,
-            white     = colors.a.com,
-            brblack   = colors.a.sel,
-            brred     = colors.b.red,
-            brgreen   = colors.b.green,
-            bryellow  = colors.b.yellow,
-            brblue    = colors.b.blue,
-            brmagenta = colors.b.magenta,
-            brcyan    = colors.b.cyan,
-            brwhite   = colors.a.faded,
-        }
+    local colors = get_colorscheme(variant).Melange.lush
+    return {
+        bg = colors.a.bg,
+        fg = colors.a.fg,
+        black = colors.a.overbg,
+        red = colors.c.red,
+        green = colors.c.green,
+        yellow = colors.b.yellow,
+        blue = colors.b.blue,
+        magenta = colors.c.magenta,
+        cyan = colors.c.cyan,
+        white = colors.a.com,
+        brblack = colors.a.sel,
+        brred = colors.b.red,
+        brgreen = colors.b.green,
+        bryellow = colors.b.yellow,
+        brblue = colors.b.blue,
+        brmagenta = colors.b.magenta,
+        brcyan = colors.b.cyan,
+        brwhite = colors.a.faded,
+    }
 end
+
+-- VIM --
 
 local vim_term_colors = [[
 let g:terminal_color_0  = '$black'
@@ -91,41 +93,102 @@ $light
 endif
 ]]
 
-local function viml_build(l)
+local function viml_build()
     local vimcolors = {}
-    for _,l in ipairs{"dark", "light"} do
+    for _, l in ipairs({ "dark", "light" }) do
         -- Compile lush table, concatenate to a single string, and remove blend property
-        vimcolors[l] = table.concat(vim.fn.sort(lush.compile(get_colorscheme(l), {exclude_keys={"blend"}})), "\n")
-        vimcolors[l .. '_term'] = interpolate(vim_term_colors, get_palette16(l))
+        vimcolors[l] = table.concat(vim.fn.sort(lush.compile(get_colorscheme(l), { exclude_keys = { "blend" } })), "\n")
+        vimcolors[l .. "_term"] = interpolate(vim_term_colors, get_palette16(l))
     end
     return fwrite(interpolate(viml_template, vimcolors), get_melange_dir() .. "/colors/melange.vim")
 end
 
+-- ITERM2 --
 
+local function iterm_color(color)
+    local hsluv_to_rgb = require("lush.vivid.hsluv.lib").hsluv_to_rgb
+    local tbl = hsluv_to_rgb({ color.h, color.s, color.l })
+    return {
+        ["Color Space"] = "sRGB",
+        ["Red Component"] = tbl[1],
+        ["Blue Component"] = tbl[2],
+        ["Green Component"] = tbl[3],
+    }
+end
+
+local function iterm_colors(l)
+    local p = vim.tbl_map(iterm_color, get_palette16(l))
+    return {
+        ["Ansi 0 color"] = p.black,
+        ["Ansi 1 color"] = p.red,
+        ["Ansi 2 color"] = p.green,
+        ["Ansi 3 color"] = p.yellow,
+        ["Ansi 4 color"] = p.blue,
+        ["Ansi 5 color"] = p.magenta,
+        ["Ansi 6 color"] = p.cyan,
+        ["Ansi 7 color"] = p.white,
+        ["Ansi 8 color"] = p.brblack,
+        ["Ansi 9 color"] = p.brred,
+        ["Ansi 10 color"] = p.brgreen,
+        ["Ansi 11 color"] = p.bryellow,
+        ["Ansi 12 color"] = p.brblue,
+        ["Ansi 13 color"] = p.brmagenta,
+        ["Ansi 14 color"] = p.brcyan,
+        ["Ansi 15 color"] = p.brwhite,
+    }
+end
+
+local function write_plist(itermcolors, path)
+    local stdin = uv.new_pipe()
+    local handle, pid = uv.spawn("plutil", {
+        args = { "-convert", "xml1", "-", "-o", path },
+        stdio = { stdin, stdout, nil },
+    }, function(code, signal)
+        assert(code == 0, "Failed to spawn `plutil`")
+    end)
+    uv.write(stdin, vim.json.encode(itermcolors))
+    uv.shutdown(stdin, function()
+        -- print("stdin shutdown", stdin)
+        uv.close(handle, function()
+            -- print("process closed", handle, pid)
+        end)
+    end)
+end
+
+-- TODO: use iterm2 color name conventions
+local function iterm2_build()
+    local dir = get_melange_dir() .. "/term/iterm2"
+    if not uv.fs_stat(dir) then
+        mkdir(dir)
+    end
+    for _, l in pairs({ "dark", "light" }) do
+        write_plist(vim.json.encode(iterm_colors(l)), string.format("%s/melange_%s.itermcolors", dir, l))
+    end
+end
+
+-- OTHER TERMINALS --
+
+-- stylua: ignore
+local terminals = {
+    alacritty  = { ext = ".yml" },
+    kitty      = { ext = ".conf" },
+    terminator = { ext = ".config" },
+    termite    = { ext = "" },
+    wezterm    = { ext = ".toml" },
+}
 
 local function build(terminals)
-    for _, l in ipairs{"dark", "light"} do
+    for _, l in ipairs({ "dark", "light" }) do
         local palette = get_palette16(l)
         for term, attrs in pairs(terminals) do
             local dir = get_melange_dir() .. "/term/" .. term
             if not uv.fs_stat(dir) then
                 mkdir(dir)
             end
-            fwrite(
-                interpolate(attrs.template, palette),
-                string.format("%s/melange_%s%s", dir, l, attrs.ext)
-            )
+            fwrite(interpolate(attrs.template, palette), string.format("%s/melange_%s%s", dir, l, attrs.ext))
         end
     end
 end
-
-local terminals = {
-    alacritty  = {ext=".yml"},
-    kitty      = {ext=".conf"},
-    terminator = {ext=".config"},
-    termite    = {ext=""},
-    wezterm    = {ext=".toml"},
-}
 
 terminals.alacritty.template = [[
 colors:
@@ -226,4 +289,12 @@ ansi = ["$black", "$red", "$green", "$yellow", "$blue", "$magenta", "$cyan", "$w
 brights = ["$brblack", "$brred", "$brgreen", "$bryellow", "$brblue", "$brmagenta", "$brcyan", "$brwhite"]
 ]]
 
-return {build = function() build(terminals); viml_build() end}
+return {
+    build = function()
+        build(terminals)
+        viml_build(viml_template, vim_term_colors)
+        if vim.fn.has("mac") == 1 then
+            iterm2_build()
+        end
+    end,
+}
