@@ -1,4 +1,3 @@
-" THIS FILE WAS AUTOMATICALLY GENERATED
 hi clear
 syntax reset
 set t_Co=256
@@ -25,7 +24,7 @@ highlight Bold guifg=NONE guibg=NONE guisp=NONE gui=bold
 highlight Boolean guifg=#CE9BCB guibg=NONE guisp=NONE gui=NONE
 highlight Character guifg=#9AACCE guibg=NONE guisp=NONE gui=NONE
 highlight ColorColumn guifg=NONE guibg=#352F2A guisp=NONE gui=NONE
-highlight Comment guifg=#A38D78 guibg=NONE guisp=NONE gui=italic
+highlight Comment guifg=#A38D78 guibg=NONE guisp=NONE gui=NONE
 highlight Conceal guifg=#C1A78E guibg=NONE guisp=NONE gui=NONE
 highlight Constant guifg=#B380B0 guibg=NONE guisp=NONE gui=NONE
 highlight CursorLineNr guifg=#E49B5D guibg=NONE guisp=NONE gui=NONE
@@ -65,12 +64,12 @@ highlight Melange guifg=NONE guibg=NONE guisp=NONE gui=NONE
 highlight ModeMsg guifg=#C1A78E guibg=NONE guisp=NONE gui=NONE
 highlight MoreMsg guifg=#78997A guibg=NONE guisp=NONE gui=bold
 highlight Normal guifg=#ECE1D7 guibg=#2A2520 guisp=NONE gui=NONE
-highlight NormalFloat guifg=NONE guibg=#352F2A guisp=NONE gui=NONE
+highlight NormalFloat guifg=NONE guibg=#132F2A guisp=NONE gui=NONE
 highlight Number guifg=#CE9BCB guibg=NONE guisp=NONE gui=NONE
 highlight Operator guifg=#F17C64 guibg=NONE guisp=NONE gui=NONE
-highlight PmenuSel guifg=NONE guibg=#4D453E guisp=NONE gui=NONE
+highlight PmenuSel guifg=NONE guibg=#878700 guisp=NONE gui=NONE
 highlight PreProc guifg=#99D59D guibg=NONE guisp=NONE gui=NONE
-highlight Search guifg=#2A2520 guibg=#8E733F guisp=NONE gui=NONE
+highlight Search guifg=#87FFFF guibg=#000087 guisp=NONE gui=NONE
 highlight Special guifg=#EBC06D guibg=NONE guisp=NONE gui=NONE
 highlight SpecialChar guifg=#88B3B2 guibg=NONE guisp=NONE gui=NONE
 highlight SpellBad guifg=#B65C60 guibg=NONE guisp=NONE gui=undercurl
@@ -79,7 +78,7 @@ highlight SpellLocal guifg=#E49B5D guibg=NONE guisp=NONE gui=undercurl
 highlight SpellRare guifg=#EBC06D guibg=NONE guisp=NONE gui=undercurl
 highlight Statement guifg=#E49B5D guibg=NONE guisp=NONE gui=NONE
 highlight StatusLineNC guifg=#C1A78E guibg=#352F2A guisp=NONE gui=NONE
-highlight String guifg=#9AACCE guibg=NONE guisp=NONE gui=italic
+highlight String guifg=#9AACCE guibg=NONE guisp=NONE gui=NONE
 highlight Substitute guifg=#2A2520 guibg=#8E733F guisp=NONE gui=NONE
 highlight TSConstBuiltin guifg=#B380B0 guibg=NONE guisp=NONE gui=italic
 highlight TSLabel guifg=#88B3B2 guibg=NONE guisp=NONE gui=NONE
@@ -104,6 +103,7 @@ highlight Whitespace guifg=#4D453E guibg=NONE guisp=NONE gui=NONE
 highlight netrwExe guifg=#B65C60 guibg=NONE guisp=NONE gui=NONE
 highlight netrwSymLink guifg=#B380B0 guibg=NONE guisp=NONE gui=NONE
 highlight texTitleArg guifg=NONE guibg=NONE guisp=NONE gui=bold
+highlight CocFloating guibg=#123123 guifg=none
 highlight! link CursorColumn ColorColumn
 highlight! link CursorLine ColorColumn
 highlight! link DiffAdded DiffAdd
@@ -139,7 +139,7 @@ highlight! link TSUnderline Underlined
 highlight! link TSVariable Identifier
 highlight! link TabLine StatusLineNC
 highlight! link TabLineFill StatusLine
-highlight! link WildMenu NormalFloat
+highlight! link WildMenu WarningMsg
 highlight! link netrwClassify Delimiter
 highlight! link netrwTreeBar Delimiter
 highlight! link texFileArg Constant
